@@ -1,37 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { useGetImageByIdQuery } from '@/redux/unsplashApi';
+import { useState } from 'react';
 
-const dummyImages = [
-  {
-    id: '1',
-    url: '/image1.jpg',
-    title: 'Sunset Over the Mountains',
-    author: 'Jane Doe',
-    description: 'A beautiful sunset over rocky mountains.',
-    tags: ['sunset', 'mountains', 'nature'],
-  },
-  {
-    id: '2',
-    url: '/image2.jpg',
-    title: 'Morning Forest Mist',
-    author: 'John Smith',
-    description: 'A peaceful forest covered in morning mist.',
-    tags: ['forest', 'mist', 'green'],
-  },
-];
-
-export default function ImageDetailPage({ params }: { params: { id: string } }) {
-  const image = dummyImages.find((img) => img.id === params.id);
+export default function ImageDetailPage() {
+  const { id } = useParams();
+  const { data: image, isLoading, error } = useGetImageByIdQuery(id as string);
+  console.log('Image data:', image);
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [comments, setComments] = useState<string[]>([]);
   const [newComment, setNewComment] = useState('');
-
-  if (!image) return notFound();
 
   const toggleLike = () => {
     setLiked((prev) => !prev);
@@ -45,39 +27,44 @@ export default function ImageDetailPage({ params }: { params: { id: string } }) 
     }
   };
 
+  if (isLoading) return <p className="p-6 text-center">Loading...</p>;
+  if (error || !image) return <p className="text-red-500 p-6 text-center">Image not found.</p>;
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <button
         onClick={() => history.back()}
-        className="font-semibold"
+        className="font-semibold text-sm text-gray-600 hover:text-black"
       >
         ← Back
       </button>
 
-      <div className="relative w-full h-[500px] rounded overflow-hidden">
+      <div className="relative w-full h-[400px] rounded overflow-hidden">
         <Image
-          src={image.url}
-          alt={image.title}
+          src={image.urls.regular}
+          alt={image.alt_description || 'Photo'}
           fill
           className="object-cover"
         />
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold">{image.title}</h1>
-        <p className="text-gray-600 mt-2">by {image.author}</p>
+        <h1 className="text-2xl font-bold">{image.alt_description || 'Untitled'}</h1>
+        <p className="text-gray-600 mt-2">by {image.user.name}</p>
       </div>
 
-      <p className="text-sm text-gray-700">{image.description}</p>
+      {image.description && (
+        <p className="text-sm text-gray-700">{image.description}</p>
+      )}
 
-      {image.tags.length > 0 && (
+      {image.tags?.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-4">
-          {image.tags.map((tag) => (
+          {image.tags.map((tag: any) => (
             <span
-              key={tag}
+              key={tag.title}
               className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
             >
-              #{tag}
+              #{tag.title}
             </span>
           ))}
         </div>
@@ -93,7 +80,9 @@ export default function ImageDetailPage({ params }: { params: { id: string } }) 
         >
           {liked ? '♥ Liked' : '♡ Like'}
         </button>
-        <span className="text-gray-700 text-sm">{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
+        <span className="text-gray-700 text-sm">
+          {likeCount} {likeCount === 1 ? 'like' : 'likes'}
+        </span>
       </div>
 
       {/* Comment Section */}
@@ -113,7 +102,7 @@ export default function ImageDetailPage({ params }: { params: { id: string } }) 
             className="bg-black text-white px-4 py-2 rounded-md text-sm"
           >
             Post
-          </button> 
+          </button>
         </div>
 
         {comments.length > 0 ? (

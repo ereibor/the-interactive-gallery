@@ -1,54 +1,30 @@
+'use client';
+
+import { useGetImagesQuery } from '../redux/unsplashApi';
 import GalleryItem from './GalleryItem';
 
-const dummyImages = [
-  {
-    id: '1',
-    src: '/image1.jpg',
-    title: 'Sunset Over Hills',
-    author: 'Jane Doe',
-  },
-  {
-    id: '2',
-    src: '/image1.jpg',
-    title: 'Forest in Fog',
-    author: 'John Smith',
-  },
-  {
-    id: '3',
-    src: '/image1.jpg',
-    title: 'Mountain Peak',
-    author: 'Alice Green',
-  },
-  {
-    id: '4',
-    src: '/image1.jpg',
-    title: 'Calm Lake',
-    author: 'Bob Brown',
-  },
-  {
-    id: '5',
-    src: '/image1.jpg',
-    title: 'Evening Horizon',
-    author: 'Alice Green',
-  },
-  {
-    id: '6',
-    src: '/image1.jpg',
-    title: 'Deep Reflection',
-    author: 'Bob Brown',
-  },
-];
+type Props = {
+  query?: string;
+  page?: number;
+};
 
-export default function Gallery() {
+export default function Gallery({ query = 'nature', page = 1 }: Props) {
+  const { data, isLoading, error } = useGetImagesQuery({ query, page });
+
+  console.log('Gallery data:', data);
+
+  if (isLoading) return <p className="p-6 text-center">Loading...</p>;
+  if (error) return <p className="text-red-500 p-6 text-center">Error loading images.</p>;
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
-      {dummyImages.map((img) => (
+      {data?.results?.map((img: any) => (
         <GalleryItem
-          key={img.id}
           id={img.id}
-          src={img.src}
-          title={img.title}
-          author={img.author}
+          key={img.id}
+          src={img.urls.small}
+          title={img.alt_description || 'Untitled'}
+          author={img.user.name}
         />
       ))}
     </div>
