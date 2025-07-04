@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import Gallery from "@/components/Gallery";
 
 export default function Home() {
   const [page, setPage] = useState(1);
@@ -17,11 +18,11 @@ export default function Home() {
         onPrevPage={handlePrevPage}
       />
 
-      {/* <main className="flex items-start justify-center p-6 pt-35 sm:pt-24">
+      <main className="flex items-start justify-center p-6 pt-35 sm:pt-24">
         <div className="bg-white rounded-xl shadow-xl w-full max-w-7xl p-6">
-         
+          <Gallery />
         </div>
-      </main> */}
+      </main>
     </div>
   );
 }
