@@ -12,9 +12,12 @@ export default function Home() {
   const handlePrevPage = () => setPage((prev) => Math.max(prev - 1, 1));
 
   const handleSearch = (term: string) => {
-    setQuery(term);
+    // If search term is empty/whitespace, reset to default
+    const searchTerm = term.trim() || "space";
+    setQuery(searchTerm);
     setPage(1); // Reset to first page when a new search is made
   };
+
 
   return (
     <div className="min-h-screen bg-gray-100">

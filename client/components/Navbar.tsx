@@ -20,9 +20,16 @@ export default function Navbar({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchInput.trim()) {
-      onSearch(searchInput.trim());
-    }
+    
+    onSearch(searchInput.trim());
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    
+    // Search as you type immediate search
+    onSearch(value.trim());
   };
 
   return (
@@ -33,14 +40,14 @@ export default function Navbar({
           <button
             onClick={onPrevPage}
             disabled={currentPage === 1}
-            className="p-2 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+            className="p-2 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50 cursor-pointer"
             aria-label="Previous Page"
           >
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
           <button
             onClick={onNextPage}
-            className="p-2 rounded bg-gray-100 hover:bg-gray-200"
+            className="p-2 rounded bg-gray-100 hover:bg-gray-200 cursor-pointer"
             aria-label="Next Page"
           >
             <ChevronRight className="w-5 h-5 text-gray-600" />
@@ -60,7 +67,7 @@ export default function Navbar({
             type="text"
             placeholder="Search images..."
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={handleInputChange}
             className="w-full text-sm focus:outline-none"
           />
         </form>

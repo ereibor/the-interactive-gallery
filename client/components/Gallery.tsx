@@ -8,8 +8,10 @@ type Props = {
   page?: number;
 };
 
-export default function Gallery({ query = 'nature', page = 1 }: Props) {
-  const { data, isLoading, error } = useGetImagesQuery({ query, page });
+export default function Gallery({ query = 'space', page = 1 }: Props) {
+  
+  const finalQuery = query?.trim() || 'space';
+  const { data, isLoading, error } = useGetImagesQuery({ query: finalQuery, page });
 
 
   if (isLoading) return <p className="p-6 text-center">Loading...</p>;
@@ -17,7 +19,7 @@ export default function Gallery({ query = 'nature', page = 1 }: Props) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
-      {data?.results?.map((img: any) => (
+      {data?.results?.map((img: { id: string; urls: { small: string }; alt_description: string | null; user: { name: string } }) => (
         <GalleryItem
           id={img.id}
           key={img.id}

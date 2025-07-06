@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Define the schema for comments
 const commentSchema = new mongoose.Schema({
   imageId: { type: String, required: true },
   username: { type: String, default: 'Anonymous' },
