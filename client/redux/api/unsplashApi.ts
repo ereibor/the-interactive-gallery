@@ -8,11 +8,14 @@ export const unsplashApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: 'https://api.unsplash.com/',
   }),
+  
   endpoints: (builder) => ({
     getImages: builder.query({
       query: ({ query, page }) => 
         `search/photos?query=${query}&page=${page}&client_id=${ACCESS_KEY}`,
     }),
+
+
     getImageById: builder.query({
       query: (id: string) => `photos/${id}?client_id=${ACCESS_KEY}`,
     }),

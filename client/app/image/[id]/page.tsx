@@ -2,17 +2,28 @@
 
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { useGetImageByIdQuery } from '@/redux/unsplashApi';
+import { useGetImageByIdQuery } from '@/redux/api/unsplashApi';
+import {
+  usePostCommentMutation,
+  useLikeImageMutation,
+  useGetCommentsByImageIdQuery,
+  useGetLikesByImageIdQuery,
+} from '@/redux/api/backendApi';
 import { useState } from 'react';
 
 export default function ImageDetailPage() {
   const { id } = useParams();
   const { data: image, isLoading, error } = useGetImageByIdQuery(id as string);
-  console.log('Image data:', image);
+
+  // backend hooks
+  const { data: commentsData = [] } = useGetCommentsByImageIdQuery(id as string);
+  const [postComment] = usePostCommentMutation();
+
+  
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [comments, setComments] = useState<string[]>([]);
+
   const [newComment, setNewComment] = useState('');
 
   const toggleLike = () => {
@@ -20,12 +31,18 @@ export default function ImageDetailPage() {
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
   };
 
-  const handleCommentSubmit = () => {
+  const handleCommentSubmit = async () => {
     if (newComment.trim().length > 2) {
-      setComments((prev) => [...prev, newComment.trim()]);
+      await postComment({
+        imageId: id as string,
+        content: newComment.trim(),
+        username: localStorage.getItem('username') || 'Anonymous',
+      });
       setNewComment('');
     }
   };
+
+  const comments = commentsData.map(comment => comment);
 
   if (isLoading) return <p className="p-6 text-center">Loading...</p>;
   if (error || !image) return <p className="text-red-500 p-6 text-center">Image not found.</p>;
@@ -109,7 +126,7 @@ export default function ImageDetailPage() {
           <ul className="space-y-2">
             {comments.map((comment, idx) => (
               <li key={idx} className="text-sm text-gray-800 bg-gray-100 p-2 rounded">
-                {comment}
+                {comment.content} <span className="text-gray-500">- {comment.username}</span>
               </li>
             ))}
           </ul>
