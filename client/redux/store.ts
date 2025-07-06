@@ -10,13 +10,15 @@ import {
   REGISTER,
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
-import { unsplashApi } from './unsplashApi';
+import { unsplashApi } from './api/unsplashApi';
+import { backendApi } from './api/backendApi'; // Import your backend API slice
 // import authReducer from './authSlice'; // If you have an auth slice
 
 const rootReducer = combineReducers({
   // Add other reducers here (e.g., auth)
   // auth: authReducer,
   [unsplashApi.reducerPath]: unsplashApi.reducer,
+  [backendApi.reducerPath]: backendApi.reducer,
 });
 
 const persistConfig = {
@@ -35,7 +37,8 @@ export const store = configureStore({
         // ✅ Ignore redux-persist's non-serializable actions
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(unsplashApi.middleware),
+    }).concat(unsplashApi.middleware, backendApi.middleware), 
+  devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development
 });
 
 export const persistor = persistStore(store);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetImagesQuery } from '../redux/unsplashApi';
+import { useGetImagesQuery } from '../redux/api/unsplashApi';
 import GalleryItem from './GalleryItem';
 
 type Props = {
@@ -11,7 +11,6 @@ type Props = {
 export default function Gallery({ query = 'nature', page = 1 }: Props) {
   const { data, isLoading, error } = useGetImagesQuery({ query, page });
 
-  console.log('Gallery data:', data);
 
   if (isLoading) return <p className="p-6 text-center">Loading...</p>;
   if (error) return <p className="text-red-500 p-6 text-center">Error loading images.</p>;
