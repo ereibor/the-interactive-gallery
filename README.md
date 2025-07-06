@@ -37,7 +37,6 @@ This is a full-stack application that allows users to search for images from **U
 
 ```env
 MONGODB_URI=your_mongodb_connection_string
-PORT=4000
 ```
 
 ### 🌐 Client `.env.local`
