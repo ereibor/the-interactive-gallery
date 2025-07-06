@@ -92,7 +92,6 @@ Create `.env`:
 
 ```env
 MONGODB_URI=your_mongo_uri
-PORT=4000
 ```
 
 Start the server:
