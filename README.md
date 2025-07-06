@@ -59,13 +59,13 @@ NEXT_PUBLIC_UNSPLASH_ACCESS_KEY=your_unsplash_access_key
 This file defines API endpoints that interact with your backend:
 
 ✅ Endpoints:
-Name	               Type	              Description	                         Path
-postComment	          Mutation	          Posts a comment	                     POST /api/comments
-likeImage	          Mutation	          Likes an image	                     POST /api/likes
-deleteLike	          Mutation	          Removes a like	                     DELETE /api/likes/:id/:user
-getCommentsByImageId  Query	              Gets comments for an image	         GET /api/comments/:imageId
-getLikesByImageId	  Query	              Gets like count for an image           GET /api/likes/count/:imageId
-checkUserLikeStatus	  Query	              Checks if user liked a specific image  GET /api/likes/check/:id/:user
+Name	               Type	              Description	                              Path
+postComment	          Mutation	          Posts a comment	                        POST /api/comments
+likeImage	            Mutation	          Likes an image	                        POST /api/likes
+deleteLike	          Mutation	          Removes a like	                        DELETE /api/likes/:id/:user
+getCommentsByImageId  Query	              Gets comments for an image	            GET /api/comments/:imageId
+getLikesByImageId	    Query	              Gets like count for an image            GET /api/likes/count/:imageId
+checkUserLikeStatus	  Query	              Checks if user liked a specific image   GET /api/likes/check/:id/:user
 
 
 
