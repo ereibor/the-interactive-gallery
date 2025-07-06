@@ -1,25 +1,22 @@
-import { Router } from 'express';
-import { LikeController } from '../controllers/like.controller';
+import { Router } from "express";
+import { LikeController } from "../controllers/like.controller";
 
 const router = Router();
 const likeController = new LikeController();
 
 // Create a like
-router.post('/', likeController.createLike);
+router.post("/", likeController.createLike);
 
-// Get likes for a comment
-router.get('/comment/:commentId', likeController.getLikesByCommentId);
+// Get likes for a image
+router.get("/image/:imageId", likeController.getLikesByImageId);
 
-// Get like count for a comment
-router.get('/count/:commentId', likeController.getLikeCountByCommentId);
+// Get like count for a image
+router.get("/count/:imageId", likeController.getLikeCountByImageId);
 
 // Check if user liked a comment
-router.get('/check/:commentId/:username', likeController.hasUserLikedComment);
+router.get("/check/:imageId/:username", likeController.hasUserLikedImage);
 
 // Delete a like (unlike)
-router.delete('/:commentId/:username', likeController.deleteLike);
-
-// Get all likes by a user
-router.get('/user/:username', likeController.getLikesByUsername);
+router.delete("/:imageId/:username", likeController.deleteLike);
 
 export default router;

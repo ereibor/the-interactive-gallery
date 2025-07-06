@@ -4,13 +4,14 @@ import connectDB from './config/db';
 import commentRouter from './routes/comment.routes';
 import likeRouter from './routes/like.routes';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
 connectDB();
-
+app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(express.json());

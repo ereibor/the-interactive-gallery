@@ -1,6 +1,5 @@
 import { CommentRepository } from "../repositories/comment.respository";
 
-
 export class CommentService {
   private commentRepository: CommentRepository;
 
@@ -9,7 +8,11 @@ export class CommentService {
   }
 
   // Create a new comment
-  async createComment(commentData: { imageId: string; username?: string; content: string }) {
+  async createComment(commentData: {
+    imageId: string;
+    username?: string;
+    content: string;
+  }) {
     return await this.commentRepository.createComment(commentData);
   }
 

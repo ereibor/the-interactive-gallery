@@ -10,23 +10,23 @@ export class LikeController {
 
   // Create a new like
   public createLike = async (req: Request, res: Response): Promise<void> => {
-    console.log("Creating like with data:", req.body);
-    
     try {
-      const { commentId, username } = req.body;
-      
-      if (!commentId || !username) {
-        res.status(400).json({ error: "commentId and username are required" });
+      const { imageId, username } = req.body;
+
+      if (!imageId || !username) {
+        res.status(400).json({ error: "imageId and username are required" });
         return;
       }
 
-      const newLike = await this.likeService.createLike({ commentId, username });
+      const newLike = await this.likeService.createLike({ imageId, username });
       res.status(201).json(newLike);
     } catch (error: any) {
       // Handle duplicate like error (unique constraint violation)
-      
+
       if (error.code === 11000) {
-        res.status(409).json({ error: "You have already liked this comment" });
+        res
+          .status(409)
+          .json({ error: "You have already liked this image backend" });
       } else {
         console.error("Error creating like:", error);
         res.status(500).json({ error: "Failed to create like" });
@@ -34,11 +34,14 @@ export class LikeController {
     }
   };
 
-  // Get likes for a specific comment
-  public getLikesByCommentId = async (req: Request, res: Response): Promise<void> => {
+  // Get likes for a specific image
+  public getLikesByImageId = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const { commentId } = req.params;
-      const likes = await this.likeService.getLikesByCommentId(commentId);
+      const { imageId } = req.params;
+      const likes = await this.likeService.getLikesByImageId(imageId);
       res.status(200).json(likes);
     } catch (error) {
       console.error("Error fetching likes:", error);
@@ -46,11 +49,14 @@ export class LikeController {
     }
   };
 
-  // Get like count for a specific comment
-  public getLikeCountByCommentId = async (req: Request, res: Response): Promise<void> => {
+  // Get like count for a specific image
+  public getLikeCountByImageId = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const { commentId } = req.params;
-      const count = await this.likeService.getLikeCountByCommentId(commentId);
+      const { imageId } = req.params;
+      const count = await this.likeService.getLikeCountByImageId(imageId);
       res.status(200).json({ count });
     } catch (error) {
       console.error("Error fetching like count:", error);
@@ -58,11 +64,17 @@ export class LikeController {
     }
   };
 
-  // Check if a user has liked a specific comment
-  public hasUserLikedComment = async (req: Request, res: Response): Promise<void> => {
+  // Check if a user has liked a specific image
+  public hasUserLikedImage = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
-      const { commentId, username } = req.params;
-      const hasLiked = await this.likeService.hasUserLikedComment(commentId, username);
+      const { imageId, username } = req.params;
+      const hasLiked = await this.likeService.hasUserLikedImage(
+        imageId,
+        username
+      );
       res.status(200).json({ exists: !!hasLiked });
     } catch (error) {
       console.error("Error checking user like:", error);
@@ -73,9 +85,9 @@ export class LikeController {
   // Delete a like (unlike)
   public deleteLike = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { commentId, username } = req.params;
-      const deletedLike = await this.likeService.deleteLike(commentId, username);
-      
+      const { imageId, username } = req.params;
+      const deletedLike = await this.likeService.deleteLike(imageId, username);
+
       if (!deletedLike) {
         res.status(404).json({ error: "Like not found" });
         return;
@@ -88,15 +100,4 @@ export class LikeController {
     }
   };
 
-  // Get all likes by a specific user
-  public getLikesByUsername = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { username } = req.params;
-      const likes = await this.likeService.getLikesByUsername(username);
-      res.status(200).json(likes);
-    } catch (error) {
-      console.error("Error fetching user likes:", error);
-      res.status(500).json({ error: "Failed to fetch user likes" });
-    }
-  };
 }

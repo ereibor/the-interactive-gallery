@@ -8,32 +8,27 @@ export class LikeService {
   }
 
   // Create a new like
-  async createLike(likeData: { commentId: string; username: string }) {
+  async createLike(likeData: { imageId: string; username: string }) {
     return await this.likeRepository.createLike(likeData);
   }
 
-  // Get likes for a specific comment
-  async getLikesByCommentId(commentId: string) {
-    return await this.likeRepository.getLikesByCommentId(commentId);
+  // Get likes for a specific image
+  async getLikesByImageId(imageId: string) {
+    return await this.likeRepository.getLikesByImageId(imageId);
   }
 
-  // Get like count for a specific comment
-  async getLikeCountByCommentId(commentId: string) {
-    return await this.likeRepository.getLikeCountByCommentId(commentId);
+  // Get like count for a specific image
+  async getLikeCountByImageId(imageId: string) {
+    return await this.likeRepository.getLikeCountByImageId(imageId);
   }
 
-  // Check if a user has liked a specific comment
-  async hasUserLikedComment(commentId: string, username: string) {
-    return await this.likeRepository.hasUserLikedComment(commentId, username);
+  // Check if a user has liked a specific image
+  async hasUserLikedImage(imageId: string, username: string) {
+    return await this.likeRepository.hasUserLikedImage(imageId, username);
   }
 
   // Delete a like (unlike)
-  async deleteLike(commentId: string, username: string) {
-    return await this.likeRepository.deleteLike(commentId, username);
-  }
-
-  // Get all likes by a specific user
-  async getLikesByUsername(username: string) {
-    return await this.likeRepository.getLikesByUsername(username);
+  async deleteLike(imageId: string, username: string) {
+    return await this.likeRepository.deleteLike(imageId, username);
   }
 }
