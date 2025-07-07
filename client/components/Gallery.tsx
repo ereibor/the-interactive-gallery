@@ -18,7 +18,7 @@ export default function Gallery({ query = 'space', page = 1 }: Props) {
   if (error) return <p className="text-red-500 p-6 text-center">Error loading images.</p>;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6">
       {data?.results?.map((img: { id: string; urls: { small: string }; alt_description: string | null; user: { name: string } }) => (
         <GalleryItem
           id={img.id}
