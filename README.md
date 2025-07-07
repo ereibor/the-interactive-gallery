@@ -26,8 +26,6 @@ This is a full-stack application that allows users to search for images from **U
 - [x] MongoDB (Mongoose)  
 - [x] TypeScript  
 - [x] Morgan (Logger)  
-- [x] CORS  
-
 ---
 
 ## 🧪 Environment Variables
