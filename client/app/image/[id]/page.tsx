@@ -13,15 +13,32 @@ import {
 import { useState } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
+// Simple function to get username with random number for anonymous users
+const getUsername = () => {
+  const storedUsername = localStorage.getItem("username");
+  if (storedUsername) return storedUsername;
+  
+  // Check if we already have an anonymous ID
+  let anonymousId = localStorage.getItem("anonymousId");
+  if (!anonymousId) {
+    // Generate random number between 1000-9999
+    anonymousId = Math.floor(Math.random() * 9000 + 1000).toString();
+    localStorage.setItem("anonymousId", anonymousId);
+  }
+  
+  return `Anonymous${anonymousId}`;
+};
+
 export default function ImageDetailPage() {
   const { id } = useParams();
 
   // Fetch single image query image data by ID from Unsplash API
   const { data: image, isLoading, error } = useGetImageByIdQuery(id as string);
   const [newComment, setNewComment] = useState("");
+  const [commentError, setCommentError] = useState("");
 
   // Get username once at the top
-  const username = localStorage.getItem("username") || "Anonymous";
+  const username = getUsername();
 
   // backend API mutations and queries
   const [postComment] = usePostCommentMutation();
@@ -56,36 +73,57 @@ export default function ImageDetailPage() {
       const likeCheck = await refetchLikeStatus().unwrap();
       if (likeCheck.exists) {
         await deleteLike({ imageId: id as string, username }).unwrap();
-
-        console.log("Image already liked, like removed");
         return;
       }
 
       await likeImage({ imageId: id as string, username }).unwrap();
-      console.log("Image liked successfully");
     } catch (error: unknown) {
       if (
         error instanceof Error &&
         (error as { data?: { error?: string } })?.data?.error ===
           "You have already liked this image"
       ) {
-        console.log("Image already liked on server (duplicate request)");
+
       } else {
         console.error("Failed to like image:", error);
       }
     }
   };
 
-  // Create comment mutation
-
+  // Create comment mutation with validation
   const handleCommentSubmit = async () => {
-    if (newComment.trim().length > 2) {
+    const trimmedComment = newComment.trim();
+    
+    // Clear previous error
+    setCommentError("");
+    
+    // Validation checks
+    if (trimmedComment.length === 0) {
+      setCommentError("Comment cannot be empty");
+      return;
+    }
+    
+    if (trimmedComment.length < 3) {
+      setCommentError("Comment must be at least 3 characters long");
+      return;
+    }
+    
+    if (trimmedComment.length > 500) {
+      setCommentError("Comment cannot exceed 500 characters");
+      return;
+    }
+    
+    try {
       await postComment({
         imageId: id as string,
-        content: newComment.trim(),
-        username: localStorage.getItem("username") || "Anonymous",
+        content: trimmedComment,
+        username: username,
       }).unwrap();
       setNewComment("");
+      setCommentError("");
+    } catch (error) {
+      setCommentError("Failed to post comment. Please try again.");
+      console.error("Comment post error:", error);
     }
   };
 
@@ -158,26 +196,50 @@ export default function ImageDetailPage() {
       <div className="mt-8 space-y-4">
         <h2 className="text-lg font-semibold">Comments</h2>
 
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault(); 
-                handleCommentSubmit();
-              }
-            }}
-            className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
-          />
-          <button
-            onClick={handleCommentSubmit}
-            className="bg-black text-white px-4 py-2 rounded-md text-sm cursor-pointer"
-          >
-            Post
-          </button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Write a comment..."
+              value={newComment}
+              onChange={(e) => {
+                setNewComment(e.target.value);
+                // Clear error when user starts typing
+                if (commentError) setCommentError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); 
+                  handleCommentSubmit();
+                }
+              }}
+              className={`flex-1 border rounded-md px-3 py-2 text-sm ${
+                commentError 
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                  : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              }`}
+              maxLength={500}
+            />
+            <button
+              onClick={handleCommentSubmit}
+              className="bg-black text-white px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-800 transition"
+            >
+              Post
+            </button>
+          </div>
+          
+          {/* Error message */}
+          {commentError && (
+            <p className="text-red-500 text-xs mt-1">{commentError}</p>
+          )}
+          
+          {/* Character count */}
+          <div className="flex justify-between items-center text-xs text-gray-500">
+            <span>Minimum 3 characters</span>
+            <span className={newComment.length > 450 ? "text-orange-500" : ""}>
+              {newComment.length}/200
+            </span>
+          </div>
         </div>
 
         {comments.length > 0 ? (
