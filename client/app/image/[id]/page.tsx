@@ -1,6 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import { useGetImageByIdQuery } from "@/redux/api/unsplashApi";
 import {
   usePostCommentMutation,
@@ -10,45 +11,37 @@ import {
   useCheckUserLikeStatusQuery,
   useDeleteLikeMutation,
 } from "@/redux/api/backendApi";
-import { useState } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-// Simple function to get username with random number for anonymous users
+// Simple function to get a username
 const getUsername = () => {
   const storedUsername = localStorage.getItem("username");
   if (storedUsername) return storedUsername;
-  
-  // Check if we already have an anonymous ID
+
   let anonymousId = localStorage.getItem("anonymousId");
   if (!anonymousId) {
-    // Generate random number between 1000-9999
     anonymousId = Math.floor(Math.random() * 9000 + 1000).toString();
     localStorage.setItem("anonymousId", anonymousId);
   }
-  
+
   return `Anonymous${anonymousId}`;
 };
 
 export default function ImageDetailPage() {
   const { id } = useParams();
+  const username = getUsername();
 
-  // Fetch single image query image data by ID from Unsplash API
   const { data: image, isLoading, error } = useGetImageByIdQuery(id as string);
   const [newComment, setNewComment] = useState("");
   const [commentError, setCommentError] = useState("");
 
-  // Get username once at the top
-  const username = getUsername();
-
-  // backend API mutations and queries
   const [postComment] = usePostCommentMutation();
   const [likeImage] = useLikeImageMutation();
-  const { data: commentsData = [] } = useGetCommentsByImageIdQuery(
-    id as string
-  );
+  const [deleteLike] = useDeleteLikeMutation();
+
+  const { data: commentsData = [] } = useGetCommentsByImageIdQuery(id as string);
   const { data: likesData } = useGetLikesByImageIdQuery(id as string);
 
-  // Check if user has already liked this image hasLiked mutation
   const {
     data: likeStatus,
     isLoading: likeStatusLoading,
@@ -58,76 +51,74 @@ export default function ImageDetailPage() {
     username,
   });
 
-  // Mutation to delete like
-  const [deleteLike] = useDeleteLikeMutation();
+  // Optimistic local state
+  const [localLiked, setLocalLiked] = useState<boolean | null>(null);
+  const [localLikeCount, setLocalLikeCount] = useState<number | null>(null);
 
-  const likedCount = likesData?.count || 0; // Default to 0 if no likes data
-  const isLiked = likeStatus?.exists || false;
+  // Initialize local like state once
+  useEffect(() => {
+    if (likeStatus && localLiked === null) {
+      setLocalLiked(likeStatus.exists);
+    }
+  }, [likeStatus]);
 
-  // Create like mutation
+  useEffect(() => {
+    if (likesData && localLikeCount === null) {
+      setLocalLikeCount(likesData.count);
+    }
+  }, [likesData]);
+
+  const isLiked = localLiked ?? false;
+  const likeCount = localLikeCount ?? 0;
+
   const handleLike = async () => {
-    if (likeStatusLoading) return;
+    if (likeStatusLoading || !id) return;
 
     try {
-      // Double-check from server again to avoid race condition
-      const likeCheck = await refetchLikeStatus().unwrap();
-      if (likeCheck.exists) {
+      const current = await refetchLikeStatus().unwrap();
+
+      if (current.exists) {
+        // Optimistic unlike
+        setLocalLiked(false);
+        setLocalLikeCount((prev) => (prev !== null ? prev - 1 : 0));
         await deleteLike({ imageId: id as string, username }).unwrap();
-        return;
-      }
-
-      await likeImage({ imageId: id as string, username }).unwrap();
-    } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        (error as { data?: { error?: string } })?.data?.error ===
-          "You have already liked this image"
-      ) {
-
       } else {
-        console.error("Failed to like image:", error);
+        // Optimistic like
+        setLocalLiked(true);
+        setLocalLikeCount((prev) => (prev !== null ? prev + 1 : 1));
+        await likeImage({ imageId: id as string, username }).unwrap();
       }
+    } catch (err) {
+      console.error("Like/unlike error:", err);
     }
   };
 
-  // Create comment mutation with validation
   const handleCommentSubmit = async () => {
-    const trimmedComment = newComment.trim();
-    
-    // Clear previous error
+    const trimmed = newComment.trim();
     setCommentError("");
-    
-    // Validation checks
-    if (trimmedComment.length === 0) {
-      setCommentError("Comment cannot be empty");
-      return;
-    }
-    
-    if (trimmedComment.length < 3) {
+
+    if (trimmed.length < 3) {
       setCommentError("Comment must be at least 3 characters long");
       return;
     }
-    
-    if (trimmedComment.length > 500) {
+
+    if (trimmed.length > 500) {
       setCommentError("Comment cannot exceed 500 characters");
       return;
     }
-    
+
     try {
       await postComment({
         imageId: id as string,
-        content: trimmedComment,
-        username: username,
+        content: trimmed,
+        username,
       }).unwrap();
       setNewComment("");
-      setCommentError("");
     } catch (error) {
       setCommentError("Failed to post comment. Please try again.");
-      console.error("Comment post error:", error);
+      console.error("Comment error:", error);
     }
   };
-
-  const comments = commentsData.map((comment) => comment);
 
   if (isLoading) return <LoadingSpinner />;
   if (error || !image)
@@ -137,7 +128,7 @@ export default function ImageDetailPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <button
         onClick={() => history.back()}
-        className="font-semibold text-sm text-gray-600 hover:text-black cursor-pointer"
+        className="font-semibold text-sm text-gray-600 hover:text-black"
       >
         ← Back
       </button>
@@ -175,7 +166,7 @@ export default function ImageDetailPage() {
         </div>
       )}
 
-      {/* Like Button and Count */}
+      {/* Like section */}
       <div className="flex items-center gap-4 mt-4">
         <button
           onClick={handleLike}
@@ -188,11 +179,11 @@ export default function ImageDetailPage() {
           {isLiked ? "♥ Liked" : "♡ Like"}
         </button>
         <span className="text-gray-700 text-sm">
-          {likedCount} {likedCount === 1 ? "like" : "likes"}
+          {likeCount} {likeCount === 1 ? "like" : "likes"}
         </span>
       </div>
 
-      {/* Comment Section */}
+      {/* Comment section */}
       <div className="mt-8 space-y-4">
         <h2 className="text-lg font-semibold">Comments</h2>
 
@@ -204,47 +195,46 @@ export default function ImageDetailPage() {
               value={newComment}
               onChange={(e) => {
                 setNewComment(e.target.value);
-                // Clear error when user starts typing
                 if (commentError) setCommentError("");
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  e.preventDefault(); 
+                  e.preventDefault();
                   handleCommentSubmit();
                 }
               }}
               className={`flex-1 border rounded-md px-3 py-2 text-sm ${
-                commentError 
-                  ? "border-red-500 focus:border-red-500 focus:ring-red-500" 
+                commentError
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
                   : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               }`}
               maxLength={500}
             />
             <button
               onClick={handleCommentSubmit}
-              className="bg-black text-white px-4 py-2 rounded-md text-sm cursor-pointer hover:bg-gray-800 transition"
+              className="bg-black text-white px-4 py-2 rounded-md text-sm hover:bg-gray-800 transition"
             >
               Post
             </button>
           </div>
-          
-          {/* Error message */}
+
           {commentError && (
             <p className="text-red-500 text-xs mt-1">{commentError}</p>
           )}
-          
-          {/* Character count */}
-          <div className="flex justify-between items-center text-xs text-gray-500">
+
+          <div className="flex justify-between text-xs text-gray-500">
             <span>Minimum 3 characters</span>
-            <span className={newComment.length > 450 ? "text-orange-500" : ""}>
-              {newComment.length}/200
+            <span
+              className={newComment.length > 450 ? "text-orange-500" : ""}
+            >
+              {newComment.length}/500
             </span>
           </div>
         </div>
 
-        {comments.length > 0 ? (
+        {commentsData.length > 0 ? (
           <ul className="space-y-2">
-            {comments.map((comment, idx) => (
+            {commentsData.map((comment, idx) => (
               <li
                 key={idx}
                 className="text-sm text-gray-800 bg-gray-100 p-2 rounded"
