@@ -27,7 +27,6 @@ This is a full-stack application that allows users to search for images from **U
 - [x] TypeScript  
 - [x] Morgan (Logger)  
 - [x] CORS  
-- [x] dotenv  
 
 ---
 
