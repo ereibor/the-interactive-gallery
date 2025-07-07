@@ -15,7 +15,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function ImageDetailPage() {
   const { id } = useParams();
-  
+
   // Fetch single image query image data by ID from Unsplash API
   const { data: image, isLoading, error } = useGetImageByIdQuery(id as string);
   const [newComment, setNewComment] = useState("");
@@ -40,34 +40,29 @@ export default function ImageDetailPage() {
     imageId: id as string,
     username,
   });
- 
+
   // Mutation to delete like
   const [deleteLike] = useDeleteLikeMutation();
 
-
   const likedCount = likesData?.count || 0; // Default to 0 if no likes data
   const isLiked = likeStatus?.exists || false;
-  
-
 
   // Create like mutation
   const handleLike = async () => {
     if (likeStatusLoading) return;
 
-    
     try {
       // Double-check from server again to avoid race condition
       const likeCheck = await refetchLikeStatus().unwrap();
       if (likeCheck.exists) {
         await deleteLike({ imageId: id as string, username }).unwrap();
-       
+
         console.log("Image already liked, like removed");
         return;
       }
 
       await likeImage({ imageId: id as string, username }).unwrap();
       console.log("Image liked successfully");
-
     } catch (error: unknown) {
       if (
         error instanceof Error &&
@@ -104,7 +99,7 @@ export default function ImageDetailPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <button
         onClick={() => history.back()}
-        className="font-semibold text-sm text-gray-600 hover:text-black"
+        className="font-semibold text-sm text-gray-600 hover:text-black cursor-pointer"
       >
         ← Back
       </button>
@@ -169,6 +164,12 @@ export default function ImageDetailPage() {
             placeholder="Write a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault(); 
+                handleCommentSubmit();
+              }
+            }}
             className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm"
           />
           <button

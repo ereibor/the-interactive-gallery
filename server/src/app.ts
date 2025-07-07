@@ -1,3 +1,4 @@
+import './utils/env'; 
 import express, { Request, Response } from 'express';
 import morgan from 'morgan';
 import connectDB from './config/db';
@@ -5,6 +6,8 @@ import commentRouter from './routes/comment.routes';
 import likeRouter from './routes/like.routes';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+
+
 
 
 const app = express();
