@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const backendApi = createApi({
   reducerPath: 'backendApi',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:4000/api' }),
+  baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_BACKEND_API_URL}),
   tagTypes: ['Comment', 'Like', 'Image'],
   
   endpoints: (builder) => ({
